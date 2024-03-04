@@ -96,7 +96,7 @@ namespace BankAccountAPI.Repository.Implementation
                 var fields = transactionString.Split('*');
                 return new Transaction
                 {
-                    Id = int.Parse(fields[0]),
+                    Id = fields[0],
                     Amount = decimal.Parse(fields[1]),
                     Date = DateTime.Parse(fields[2])
                 };

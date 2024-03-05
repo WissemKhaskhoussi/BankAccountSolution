@@ -19,6 +19,7 @@ namespace BankAccountAPI.Repository.Implementation
 
         public BankAccount GetById(int id)
         {
+            var result = new BankAccount();
             var lines = File.ReadAllLines(_csvFilePath);
             foreach (var line in lines.Skip(1))
             {
@@ -29,23 +30,12 @@ namespace BankAccountAPI.Repository.Implementation
                     {
                         Id = int.Parse(fields[0]),
                         Balance = decimal.Parse(fields[1]),
-                        Transactions = new List<Transaction>()
+                        Transactions = DeserializeTransactions(fields[2])
                     };
-
-                    // Loop through all transaction fields (starting from index 2)
-                    for (int i = 2; i < fields.Length; i++)
-                    {
-                        var transactionsData = fields[i].Split(';');
-                        foreach (var transactionData in transactionsData)
-                        {
-                            account.Transactions.AddRange(DeserializeTransactions(transactionData));
-                        }
-                    }
-
-                    return account;
+                    result= account;
                 }
             }
-            return null;
+            return result;
         }
 
         public void Save(BankAccount account)
@@ -85,13 +75,14 @@ namespace BankAccountAPI.Repository.Implementation
 
         private string SerializeTransactions(List<Transaction> transactions)
         {
-            return string.Join(";", transactions.Select(t =>
+            return string.Join("@", transactions.Select(t =>
                   $"{t.Id}*{t.Amount.ToString("0,00").Replace(",", ".")}*{t.Date:yyyy-MM-dd}"));
         }
 
         private List<Transaction> DeserializeTransactions(string serializedTransactions)
         {
-            return serializedTransactions.Split(';').Select(transactionString =>
+
+            return serializedTransactions.Split('@').Select(transactionString =>
             {
                 var fields = transactionString.Split('*');
                 return new Transaction
